@@ -2,6 +2,7 @@ package mx.com.qtx.progeven.api;
 
 import java.util.Map;
 
+import mx.com.qtx.progeven.core.IGestorOrganizacion;
 import mx.com.qtx.progeven.core.IPublicadorNotificaciones;
 import mx.com.qtx.progeven.core.InvocacionServicioException;
 import mx.com.qtx.progeven.core.errores.ErrorAppInvocacion;
@@ -21,23 +22,33 @@ public class ApiEventosController {
 	
 	@Autowired
 	private IGestorTematicas gestorTematicas;
+
+	@Autowired
+	private IGestorOrganizacion gestorOrganizacion;
+
 	@Autowired
 	private IPublicadorNotificaciones notificador;
 
 	@GetMapping(path = "/eventos/programacion", produces = MediaType.TEXT_PLAIN_VALUE)
 	public String getUiProgEventos() {
 		bitacora.info("getUiProgEventos()");
+
+		//Orquestacion: Llamados a 2 microservicios distintos
 		int numPersona = 2;
 		
 		Map<String, Integer> tematicas = gestorTematicas.getMapTematicas(numPersona);
 		bitacora.info("Temáticas de persona num(" + numPersona
 				+ "):" + tematicas.keySet());
 
+		Map<String, String> areas = gestorOrganizacion.getMapAreas();
+
 		// 	Coreografía: enviar eventoProgramado a MessageBroker
 		String objJsonEvento = TestUtil.getEventoAleatorioEnJson();
 		this.notificador.emitirNotificacion(objJsonEvento);
 
-		return tematicas.keySet().toString() + ", " + objJsonEvento;
+		return tematicas.keySet().toString() + ", "
+				+ areas.toString() + ", "
+				+ objJsonEvento;
 		
 	}
 
